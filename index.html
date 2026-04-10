@@ -522,6 +522,7 @@
         <div class="pane-header">
           <span class="pane-label">콩글리쉬 출력</span>
           <div class="pane-actions">
+            <button class="btn-icon" id="btn-tts-output" title="읽어주기">🔊 듣기</button>
             <button class="btn-copy" id="btn-copy">복사</button>
           </div>
         </div>
@@ -667,7 +668,8 @@
     }
 
     const inputEl   = document.getElementById('input');
-    const btnTts    = document.getElementById('btn-tts');
+    const btnTts       = document.getElementById('btn-tts');
+    const btnTtsOutput = document.getElementById('btn-tts-output');
     const outputEl  = document.getElementById('output');
     const inputCnt  = document.getElementById('input-count');
     const outputCnt = document.getElementById('output-count');
@@ -785,6 +787,33 @@
 
     // 입력 바뀌면 재생 중단
     inputEl.addEventListener('input', () => { if (ttsSpeaking) stopTts(); update(); });
+
+    // 출력 TTS (영어 발음으로 콩글리쉬 읽기)
+    let ttsOutputSpeaking = false;
+
+    function stopTtsOutput() {
+      speechSynthesis.cancel();
+      ttsOutputSpeaking = false;
+      btnTtsOutput.textContent = '🔊 듣기';
+      btnTtsOutput.classList.remove('speaking');
+    }
+
+    if (!('speechSynthesis' in window)) btnTtsOutput.disabled = true;
+
+    btnTtsOutput.addEventListener('click', () => {
+      const text = outputEl.classList.contains('empty') ? '' : outputEl.textContent.trim();
+      if (!text) return;
+      if (ttsOutputSpeaking) { stopTtsOutput(); return; }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      utterance.onend = utterance.onerror = stopTtsOutput;
+      speechSynthesis.speak(utterance);
+      ttsOutputSpeaking = true;
+      btnTtsOutput.textContent = '■ 정지';
+      btnTtsOutput.classList.add('speaking');
+    });
 
     // Theme toggle
     const themeCheckbox = document.getElementById('theme-checkbox');
