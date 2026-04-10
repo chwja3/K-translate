@@ -125,31 +125,51 @@
       margin: 0 auto;
     }
 
-    /* ── Example chips ── */
-    .chips {
+    /* ── Hero subtitle examples ── */
+    .hero-examples {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px 16px;
       justify-content: center;
-      margin: 20px 0;
-    }
-    .chip {
-      background: var(--card2);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 6px 14px;
+      margin-top: 14px;
       font-size: 0.82rem;
       color: var(--sub);
+    }
+    .hero-examples span { white-space: nowrap; }
+    .hero-examples b { color: var(--text); }
+    .hero-examples em { color: var(--accent-light); font-style: normal; }
+
+    /* ── Case toggle ── */
+    .case-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      color: var(--sub);
+    }
+    .toggle-wrap {
+      display: flex;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: var(--sub);
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-family: inherit;
       cursor: pointer;
       transition: all 0.15s;
-      user-select: none;
     }
-    .chip:hover {
-      border-color: var(--accent);
-      color: var(--accent-light);
-      background: rgba(124, 58, 237, 0.1);
+    .toggle-btn.active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
     }
-    .chip strong { color: var(--text); }
 
     /* ── Converter ── */
     .converter {
@@ -400,16 +420,22 @@
       <p>한글 텍스트를 입력하면 한국식 영문 표기(로마자)로 자동 변환됩니다. 결과를 바로 클립보드에 복사하세요.</p>
     </div>
 
-    <!-- Example chips -->
-    <div class="chips">
-      <div class="chip" data-text="안녕하세요"><strong>안녕하세요</strong> → annyeonghaseyo</div>
-      <div class="chip" data-text="사랑해"><strong>사랑해</strong> → saranghae</div>
-      <div class="chip" data-text="감사합니다"><strong>감사합니다</strong> → gamsahamnida</div>
-      <div class="chip" data-text="파이팅"><strong>파이팅</strong> → paiting</div>
-      <div class="chip" data-text="대박"><strong>대박</strong> → daebak</div>
-      <div class="chip" data-text="오빠"><strong>오빠</strong> → oppa</div>
-      <div class="chip" data-text="진짜"><strong>진짜</strong> → jinjja</div>
-      <div class="chip" data-text="맛있어"><strong>맛있어</strong> → massisseo</div>
+    <!-- Hero examples (text only) -->
+    <div class="hero-examples">
+      <span><b>안녕하세요</b> → <em>annyeonghaseyo</em></span>
+      <span><b>사랑해</b> → <em>saranghae</em></span>
+      <span><b>감사합니다</b> → <em>gamsahamnida</em></span>
+      <span><b>오빠</b> → <em>oppa</em></span>
+      <span><b>파이팅</b> → <em>paiting</em></span>
+    </div>
+
+    <!-- Case toggle -->
+    <div class="case-toggle">
+      <span>출력 형식</span>
+      <div class="toggle-wrap">
+        <button class="toggle-btn active" id="btn-lower">소문자 abc</button>
+        <button class="toggle-btn" id="btn-upper">대문자 ABC</button>
+      </div>
     </div>
 
     <!-- Converter -->
@@ -583,12 +609,16 @@
       return result;
     }
 
-    const inputEl  = document.getElementById('input');
-    const outputEl = document.getElementById('output');
-    const inputCnt = document.getElementById('input-count');
-    const outputCnt= document.getElementById('output-count');
-    const btnClear = document.getElementById('btn-clear');
-    const btnCopy  = document.getElementById('btn-copy');
+    const inputEl   = document.getElementById('input');
+    const outputEl  = document.getElementById('output');
+    const inputCnt  = document.getElementById('input-count');
+    const outputCnt = document.getElementById('output-count');
+    const btnClear  = document.getElementById('btn-clear');
+    const btnCopy   = document.getElementById('btn-copy');
+    const btnLower  = document.getElementById('btn-lower');
+    const btnUpper  = document.getElementById('btn-upper');
+
+    let isUpper = false;
 
     function update() {
       const val = inputEl.value;
@@ -599,7 +629,8 @@
         outputCnt.textContent = '0';
         return;
       }
-      const converted = toKonglish(val);
+      let converted = toKonglish(val);
+      if (isUpper) converted = converted.toUpperCase();
       outputEl.textContent = converted;
       outputEl.classList.remove('empty');
       outputCnt.textContent = converted.length;
@@ -626,12 +657,18 @@
       });
     });
 
-    document.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        inputEl.value = chip.dataset.text;
-        update();
-        inputEl.focus();
-      });
+    btnLower.addEventListener('click', () => {
+      isUpper = false;
+      btnLower.classList.add('active');
+      btnUpper.classList.remove('active');
+      update();
+    });
+
+    btnUpper.addEventListener('click', () => {
+      isUpper = true;
+      btnUpper.classList.add('active');
+      btnLower.classList.remove('active');
+      update();
     });
 
     document.querySelectorAll('.faq-q').forEach(btn => {
