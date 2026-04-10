@@ -42,6 +42,17 @@
       --success: #22c55e;
       --radius: 12px;
     }
+    body.light {
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --card2: #efefef;
+      --border: #ddd;
+      --text: #111;
+      --sub: #666;
+      --accent: #7c3aed;
+      --accent-light: #6d28d9;
+      --accent-hover: #5b21b6;
+    }
 
     body {
       background: var(--bg);
@@ -75,9 +86,34 @@
       letter-spacing: -0.3px;
     }
     .logo span { color: var(--sub); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
-    nav { display: flex; gap: 20px; }
+    nav { display: flex; gap: 20px; align-items: center; }
     nav a { color: var(--sub); font-size: 0.85rem; }
     nav a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Theme toggle ── */
+    .theme-toggle { display: flex; align-items: center; gap: 7px; margin-left: 16px; }
+    .theme-toggle-label { font-size: 0.78rem; color: var(--sub); user-select: none; }
+    .theme-switch { position: relative; width: 42px; height: 23px; flex-shrink: 0; }
+    .theme-switch input { display: none; }
+    .theme-slider {
+      position: absolute; inset: 0;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .theme-slider::before {
+      content: '';
+      position: absolute;
+      width: 17px; height: 17px;
+      left: 2px; top: 2px;
+      background: var(--sub);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .theme-switch input:checked + .theme-slider { background: var(--accent); border-color: var(--accent); }
+    .theme-switch input:checked + .theme-slider::before { transform: translateX(19px); background: #fff; }
 
     /* ── Layout ── */
     .container {
@@ -147,6 +183,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-top: 28px;
       margin-bottom: 12px;
       font-size: 0.85rem;
       color: var(--sub);
@@ -383,7 +420,8 @@
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .converter { grid-template-columns: 1fr; }
-      nav { display: none; }
+      nav a { display: none; }
+      .theme-toggle-label { display: none; }
       .hero { padding: 28px 0 16px; }
     }
   </style>
@@ -399,6 +437,13 @@
         <a href="#examples">예시</a>
         <a href="#faq">FAQ</a>
         <a href="privacy.html">개인정보처리방침</a>
+        <div class="theme-toggle">
+          <span class="theme-toggle-label" id="theme-label">라이트</span>
+          <label class="theme-switch">
+            <input type="checkbox" id="theme-checkbox">
+            <span class="theme-slider"></span>
+          </label>
+        </div>
       </nav>
     </div>
   </header>
@@ -667,6 +712,27 @@
       btn.addEventListener('click', () => {
         btn.parentElement.classList.toggle('open');
       });
+    });
+
+    // Theme toggle
+    const themeCheckbox = document.getElementById('theme-checkbox');
+    const themeLabel    = document.getElementById('theme-label');
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light');
+      themeCheckbox.checked = true;
+      themeLabel.textContent = '다크';
+    }
+    themeCheckbox.addEventListener('change', () => {
+      if (themeCheckbox.checked) {
+        document.body.classList.add('light');
+        localStorage.setItem('theme', 'light');
+        themeLabel.textContent = '다크';
+      } else {
+        document.body.classList.remove('light');
+        localStorage.setItem('theme', 'dark');
+        themeLabel.textContent = '라이트';
+      }
     });
   </script>
 
