@@ -272,6 +272,7 @@
       font-family: inherit;
     }
     .btn-icon:hover { border-color: var(--accent); color: var(--accent-light); }
+    .btn-icon.speaking { border-color: var(--accent); color: var(--accent-light); background: rgba(124,58,237,0.12); }
 
     .btn-copy {
       background: var(--accent);
@@ -508,6 +509,7 @@
         <div class="pane-header">
           <span class="pane-label">한국어 입력</span>
           <div class="pane-actions">
+            <button class="btn-icon" id="btn-tts" title="읽어주기">🔊 듣기</button>
             <button class="btn-icon" id="btn-clear" title="지우기">✕ 지우기</button>
           </div>
         </div>
@@ -665,6 +667,7 @@
     }
 
     const inputEl   = document.getElementById('input');
+    const btnTts    = document.getElementById('btn-tts');
     const outputEl  = document.getElementById('output');
     const inputCnt  = document.getElementById('input-count');
     const outputCnt = document.getElementById('output-count');
@@ -690,8 +693,6 @@
       outputEl.classList.remove('empty');
       outputCnt.textContent = converted.length;
     }
-
-    inputEl.addEventListener('input', update);
 
     btnClear.addEventListener('click', () => {
       inputEl.value = '';
@@ -731,6 +732,59 @@
         btn.parentElement.classList.toggle('open');
       });
     });
+
+    // TTS
+    let ttsSpeaking = false;
+
+    function getKoreanVoice() {
+      const voices = speechSynthesis.getVoices();
+      return voices.find(v => v.lang === 'ko-KR' && v.name.includes('Google'))
+          || voices.find(v => v.lang === 'ko-KR' && v.name.includes('Microsoft'))
+          || voices.find(v => v.lang === 'ko-KR')
+          || null;
+    }
+
+    function stopTts() {
+      speechSynthesis.cancel();
+      ttsSpeaking = false;
+      btnTts.textContent = '🔊 듣기';
+      btnTts.classList.remove('speaking');
+    }
+
+    if (!('speechSynthesis' in window)) {
+      btnTts.disabled = true;
+      btnTts.title = '이 브라우저는 TTS를 지원하지 않습니다';
+    }
+
+    btnTts.addEventListener('click', () => {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      if (ttsSpeaking) { stopTts(); return; }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 0.95;
+
+      const applyVoice = () => {
+        const voice = getKoreanVoice();
+        if (voice) utterance.voice = voice;
+        utterance.onend = utterance.onerror = stopTts;
+        speechSynthesis.speak(utterance);
+        ttsSpeaking = true;
+        btnTts.textContent = '■ 정지';
+        btnTts.classList.add('speaking');
+      };
+
+      // Chrome은 voices가 비동기로 로드됨
+      if (speechSynthesis.getVoices().length > 0) {
+        applyVoice();
+      } else {
+        speechSynthesis.addEventListener('voiceschanged', applyVoice, { once: true });
+      }
+    });
+
+    // 입력 바뀌면 재생 중단
+    inputEl.addEventListener('input', () => { if (ttsSpeaking) stopTts(); update(); });
 
     // Theme toggle
     const themeCheckbox = document.getElementById('theme-checkbox');
